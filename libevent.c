@@ -1383,6 +1383,90 @@ static PHP_FUNCTION(event_buffer_set_callback)
 }
 /* }}} */
 
+#if defined(LIBEVENT_VERSION_NUMBER) && LIBEVENT_VERSION_NUMBER > 0x02010100
+/* these functions exist starting from 2.1.1-alpha */
+
+/* {{{ proto bool event_buffer_max_single_read_set(resource bevent, int size)
+ */
+static PHP_FUNCTION(event_buffer_max_single_read_set)
+{
+	zval *zbevent;
+	php_bufferevent_t *bevent;
+	long size;
+	int res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &size) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BEVENT(zbevent, bevent);
+	res = bufferevent_set_max_single_read(bevent->bevent, size);
+	if (res < 0) {
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto bool event_buffer_max_single_write_set(resource bevent, int size)
+ */
+static PHP_FUNCTION(event_buffer_max_single_write_set)
+{
+	zval *zbevent;
+	php_bufferevent_t *bevent;
+	long size;
+	int res;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &size) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BEVENT(zbevent, bevent);
+	res = bufferevent_set_max_single_write(bevent->bevent, size);
+	if (res < 0) {
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto int event_buffer_max_single_read_get(resource bevent)
+ */
+static PHP_FUNCTION(event_buffer_max_single_read_get)
+{
+	zval *zbevent;
+	php_bufferevent_t *bevent;
+	ev_ssize_t size;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbevent) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BEVENT(zbevent, bevent);
+	size = bufferevent_get_max_single_read(bevent->bevent);
+	RETURN_LONG(size);
+}
+/* }}} */
+
+/* {{{ proto int event_buffer_max_single_write_get(resource bevent)
+ */
+static PHP_FUNCTION(event_buffer_max_single_write_get)
+{
+	zval *zbevent;
+	php_bufferevent_t *bevent;
+	ev_ssize_t size;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbevent) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BEVENT(zbevent, bevent);
+	size = bufferevent_get_max_single_write(bevent->bevent);
+	RETURN_LONG(size);
+}
+/* }}} */
+
+#endif
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -1583,6 +1667,30 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_pending, 0, 0, 1)
 	ZEND_ARG_INFO(0, event)
 	ZEND_ARG_INFO(0, timeout)
 ZEND_END_ARG_INFO()
+
+#if defined(LIBEVENT_VERSION_NUMBER) && LIBEVENT_VERSION_NUMBER > 0x02010100
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_max_single_read_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, size)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_max_single_write_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, size)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_max_single_read_get, 0, 0, 1)
+	ZEND_ARG_INFO(0, bevent)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_max_single_write_get, 0, 0, 1)
+	ZEND_ARG_INFO(0, bevent)
+ZEND_END_ARG_INFO()
+#endif
 /* }}} */
 
 /* {{{ libevent_functions[]
@@ -1622,6 +1730,12 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_timer_pending,			arginfo_event_timer_pending)
 	PHP_FALIAS(event_timer_add,			event_add,		arginfo_event_add)
 	PHP_FALIAS(event_timer_del,			event_del,		arginfo_event_del)
+#if defined(LIBEVENT_VERSION_NUMBER) && LIBEVENT_VERSION_NUMBER > 0x02010100
+	PHP_FE(event_buffer_max_single_read_set, arginfo_event_buffer_max_single_read_set)
+	PHP_FE(event_buffer_max_single_write_set, arginfo_event_buffer_max_single_write_set)
+	PHP_FE(event_buffer_max_single_read_get, arginfo_event_buffer_max_single_read_get)
+	PHP_FE(event_buffer_max_single_write_get, arginfo_event_buffer_max_single_write_get)
+#endif
 	{NULL, NULL, NULL}
 };
 /* }}} */
@@ -1659,6 +1773,12 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_timer_pending,			NULL)
 	PHP_FALIAS(event_timer_add,			event_add,	NULL)
 	PHP_FALIAS(event_timer_del,			event_del,	NULL)
+#if defined(LIBEVENT_VERSION_NUMBER) && LIBEVENT_VERSION_NUMBER > 0x02010100
+	PHP_FE(event_buffer_max_single_read_set, NULL)
+	PHP_FE(event_buffer_max_single_write_set, NULL)
+	PHP_FE(event_buffer_max_single_read_get, NULL)
+	PHP_FE(event_buffer_max_single_write_get, NULL)
+#endif
 	{NULL, NULL, NULL}
 };
 /* }}} */
